@@ -247,6 +247,9 @@ def publish(session: WorkbenchSession, requirements: list[dict[str, Any]], paylo
                 "sourceType": SOURCE_TYPE,
                 "sourceRef": source_ref,
                 "idempotencyKey": build_idempotency_key(payload, requirement),
+                "normalizedText": requirement["normalizedText"],
+                "requirementType": requirement["requirementType"],
+                "priority": requirement["priority"],
             })
             requirement_id = created.get("id")
             if not isinstance(requirement_id, int):
@@ -319,8 +322,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--username", default=os.environ.get("AI_WORKBENCH_USERNAME", ""))
     parser.add_argument("--source-ref", help="Override sourceRef for every requirement")
     parser.add_argument("--dry-run", action="store_true", help="Validate and preview without calling the API")
-    parser.add_argument("--auto-confirm", action=argparse.BooleanOptionalAction, default=True,
-                        help="Confirm created requirements into the pool (default true)")
+    parser.add_argument("--auto-confirm", action=argparse.BooleanOptionalAction, default=False,
+                        help="Confirm created requirements into the pool (default false; keeps them in 待提取)")
     return parser.parse_args()
 
 

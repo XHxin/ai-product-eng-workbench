@@ -115,6 +115,29 @@ public class IterationService {
         return saved;
     }
 
+    @Transactional
+    public IterationEntity release(Long id, String actor) {
+        IterationEntity entity = require(id);
+        if (!"READY_FOR_RELEASE".equals(entity.status)) {
+            throw BusinessException.conflict("仅待发布的迭代可以发布");
+        }
+        entity.status = "RELEASED";
+        IterationEntity saved = iterationRepository.save(entity);
+        completeRequirements(id);
+        auditLogService.record(new AuditLogService.AuditEntry("ITERATION_RELEASED", actor, "ITERATION",
+            "iterationId=" + id));
+        return saved;
+    }
+
+    private void completeRequirements(Long iterationId) {
+        for (RequirementEntity requirement : requirementRepository.findByIterationId(iterationId)) {
+            if (!"COMPLETED".equals(requirement.status)) {
+                requirement.status = "COMPLETED";
+                requirementRepository.save(requirement);
+            }
+        }
+    }
+
     private IterationEntity require(Long iterationId) {
         return iterationRepository.findById(iterationId)
             .orElseThrow(() -> BusinessException.missing("迭代"));

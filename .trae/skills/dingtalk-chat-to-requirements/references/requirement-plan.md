@@ -47,6 +47,6 @@ The plan is a JSON object carrying chat target and window metadata with the extr
 - `sourceType` is always `DINGTALK`.
 - Each `sourceMessageIds` entry is copied from `messages[].id` in the reader output; never invent IDs.
 - The idempotency key is `dingtalk-<type>-<targetId>-<sha1(sorted sourceMessageIds + title + normalizedText)[:16]>`.
-- By default the publisher creates the requirement and immediately confirms it into the pool with the plan's type, priority, and rationale.
-- With `--no-auto-confirm`, the requirement stays in `EXTRACT` (待提取) for product-manager review.
+- The publisher creates the requirement in `EXTRACT` (待提取) and preserves the plan's normalized text, type, and priority for product-manager confirmation.
+- Use `--auto-confirm` only when the user explicitly asks to push items directly into the pool (`POOL`).
 - A plan item with no actionable requirement must be omitted, not published with placeholder content.

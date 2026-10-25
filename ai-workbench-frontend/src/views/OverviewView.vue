@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useWorkbenchStore } from '../stores/workbench'
-import { formatDateTime, statusLabel } from '../ui/format'
+import { formatDateTime, iterationStatusClass, iterationStatusLabel, statusLabel } from '../ui/format'
 import StatusChip from '../components/StatusChip.vue'
 
 const emit = defineEmits<{ (event: 'open', id: number): void; (event: 'navigate', page: string): void }>()
@@ -65,7 +65,7 @@ onMounted(() => store.loadAll())
       <div class="panel-b">
         <div v-if="!summary?.iterations?.length" class="empty">尚未创建迭代</div>
         <div v-for="iteration in summary?.iterations" :key="iteration.id" class="ticket">
-          <div class="mf"><b style="font-size:13.5px">{{ iteration.name }}</b><span :class="['chip', iteration.status === 'LOCKED' ? 'st-done' : 'chip-soft']">{{ iteration.status === 'LOCKED' ? '已锁定' : '规划中' }}</span></div>
+          <div class="mf"><b style="font-size:13.5px">{{ iteration.name }}</b><span :class="['chip', iterationStatusClass(iteration.status)]">{{ iterationStatusLabel(iteration.status) }}</span></div>
           <div class="sub" style="margin-top:6px">{{ iteration.startDate }} 至 {{ iteration.endDate }}</div>
         </div>
       </div>

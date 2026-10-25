@@ -35,7 +35,7 @@ public class DashboardService {
             counts.put(status, requirements.countByStatus(status));
         }
         return new DashboardSummary(requirements.count(), counts, iterations.count(),
-            iterations.countByStatus("LOCKED"), releases.countByReleaseStatusNot("SUCCESS"),
+            iterations.countByStatus("LOCKED"), iterations.countByStatus("READY_FOR_RELEASE"),
             requirements.findTop5ByOrderByIdDesc().stream().map(Views.Requirement::from).toList(),
             iterations.findAll(PageRequest.of(0, 5)).getContent().stream().map(Views.Iteration::from).toList(),
             releases.findAllByOrderByIdDesc(PageRequest.of(0, 5)).getContent().stream()

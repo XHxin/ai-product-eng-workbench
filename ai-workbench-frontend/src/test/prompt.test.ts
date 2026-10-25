@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildIterationPrompt, buildPrompt, buildWorkBuddyDeeplink } from '../ui/prompt'
+import { buildPrompt, buildRefinementPrompt, buildTaskBreakdownPrompt, buildWorkBuddyDeeplink } from '../ui/prompt'
 
 describe('buildPrompt', () => {
   it('points DingTalk chat to the chat skill with the given target', () => {
@@ -28,9 +28,9 @@ describe('buildPrompt', () => {
   })
 })
 
-describe('buildIterationPrompt', () => {
-  it('maps a locked iteration to requirement refinement only', () => {
-    const prompt = buildIterationPrompt({ id: 3, name: '1025迭代' })
+describe('iteration prompt builders', () => {
+  it('builds a requirement refinement prompt', () => {
+    const prompt = buildRefinementPrompt({ id: 3, name: '1025迭代' })
     expect(prompt).toContain('workbench-requirement-refinement')
     expect(prompt).not.toContain('workbench-task-breakdown')
     expect(prompt).toContain('1025迭代')
@@ -39,10 +39,22 @@ describe('buildIterationPrompt', () => {
     expect(prompt).toContain('PRD')
   })
 
+  it('builds a task breakdown prompt', () => {
+    const prompt = buildTaskBreakdownPrompt({ id: 4, name: '1025迭代' })
+    expect(prompt).toContain('workbench-task-breakdown')
+    expect(prompt).not.toContain('workbench-requirement-refinement')
+    expect(prompt).toContain('1025迭代')
+    expect(prompt).toContain('ID 4')
+    expect(prompt).toContain('FINAL PRD')
+    expect(prompt).toContain('PRD_CONFIRMED')
+  })
+
   it('never embeds credentials', () => {
-    const prompt = buildIterationPrompt({ id: 1, name: '迭代' })
-    expect(prompt).not.toContain('AI_WORKBENCH_PASSWORD')
-    expect(prompt).not.toContain('AI_WORKBENCH_USERNAME')
+    for (const build of [buildRefinementPrompt, buildTaskBreakdownPrompt]) {
+      const prompt = build({ id: 1, name: '迭代' })
+      expect(prompt).not.toContain('AI_WORKBENCH_PASSWORD')
+      expect(prompt).not.toContain('AI_WORKBENCH_USERNAME')
+    }
   })
 })
 

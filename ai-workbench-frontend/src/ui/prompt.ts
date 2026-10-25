@@ -26,7 +26,7 @@ export type IterationPromptTarget = {
   name: string
 }
 
-export function buildIterationPrompt(iteration: IterationPromptTarget): string {
+export function buildRefinementPrompt(iteration: IterationPromptTarget): string {
   return [
     `请使用 Skill: workbench-requirement-refinement，对工作台迭代“${iteration.name}”（ID ${iteration.id}）进行需求分析、调研，输出需求文档和原型，并上传回工作台对应迭代。`,
     '',
@@ -37,6 +37,20 @@ export function buildIterationPrompt(iteration: IterationPromptTarget): string {
     '2. 对缺失的业务规则，通过钉钉向产品经理调研；未确认的规则标记为待确认，不要写成最终结论。',
     '3. 每个需求分别输出 Markdown 需求规格和单文件原型 HTML；产品经理回复后更新并上传新版本。',
     '4. 上传前确认迭代已锁定，PRD 版本号递增，不覆盖历史版本。',
+  ].join('\n')
+}
+
+export function buildTaskBreakdownPrompt(iteration: IterationPromptTarget): string {
+  return [
+    `请使用 Skill: workbench-task-breakdown，对工作台迭代“${iteration.name}”（ID ${iteration.id}）进行研发任务拆解，并同步到工作台研发任务。`,
+    '',
+    '当前迭代状态：已锁定（LOCKED）。',
+    '',
+    '要求：',
+    '1. 先读取迭代下的需求、FINAL PRD 和原型，再结合代码分析。',
+    '2. 只对 PRD_CONFIRMED 或 DEVELOPMENT 且存在 FINAL PRD 的需求创建任务；不满足时报告阻塞，不要绕过评审。',
+    '3. 任务按可验证能力拆分，包含标题、范围、验收标准和依赖。',
+    '4. 先 dry-run 预览，重复执行不要产生重复任务。',
   ].join('\n')
 }
 

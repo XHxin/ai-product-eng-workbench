@@ -20,6 +20,20 @@ const STATUS_CLASSES: Record<string, string> = {
   COMPLETED: 'st-done',
 }
 
+const ITERATION_STATUS_LABELS: Record<string, string> = {
+  PLANNING: '规划中',
+  LOCKED: '已锁定',
+  READY_FOR_RELEASE: '待发布',
+  RELEASED: '已发布',
+}
+
+const ITERATION_STATUS_CLASSES: Record<string, string> = {
+  PLANNING: 'chip-soft',
+  LOCKED: 'st-done',
+  READY_FOR_RELEASE: 'st-review',
+  RELEASED: 'st-done',
+}
+
 const TYPE_LABELS: Record<string, string> = { FEATURE: '新功能', IMPROVEMENT: '功能优化', BUG: '问题修复' }
 const TYPE_CLASSES: Record<string, string> = { FEATURE: 'type-new', IMPROVEMENT: 'type-opt', BUG: 'type-fix' }
 const SOURCE_LABELS: Record<string, string> = {
@@ -31,6 +45,8 @@ const ROLE_LABELS: Record<string, string> = {
 
 export const statusLabel = (status: string) => STATUS_LABELS[status] ?? status
 export const statusClass = (status: string) => STATUS_CLASSES[status] ?? 'st-extract'
+export const iterationStatusLabel = (status: string) => ITERATION_STATUS_LABELS[status] ?? status
+export const iterationStatusClass = (status: string) => ITERATION_STATUS_CLASSES[status] ?? 'chip-soft'
 export const typeLabel = (type: string) => TYPE_LABELS[type] ?? type
 export const typeClass = (type: string) => TYPE_CLASSES[type] ?? 'type-new'
 export const sourceLabel = (source: string) => SOURCE_LABELS[source] ?? source

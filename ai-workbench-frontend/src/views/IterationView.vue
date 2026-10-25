@@ -4,8 +4,8 @@ import { endpoints } from '../api/endpoints'
 import type { Requirement } from '../api/types'
 import { useAuthStore } from '../stores/auth'
 import { useWorkbenchStore } from '../stores/workbench'
-import { can, readableError } from '../ui/format'
-import { buildIterationPrompt } from '../ui/prompt'
+import { can, iterationStatusClass, iterationStatusLabel, readableError } from '../ui/format'
+import { buildRefinementPrompt, buildTaskBreakdownPrompt } from '../ui/prompt'
 import { notify } from '../ui/toast'
 import StatusChip from '../components/StatusChip.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
@@ -21,15 +21,18 @@ const form = ref({ name: '', startDate: '', endDate: '' })
 const promptVisible = ref(false)
 const promptText = ref('')
 const promptSource = ref('')
+const promptTitle = ref('')
 const removeTarget = ref<Requirement | null>(null)
 
 const selected = computed(() => store.iterations.find(item => item.id === selectedId.value) ?? store.iterations[0])
 const assigned = computed(() => store.requirements.filter(item => item.iterationId === selected.value?.id))
 const pool = computed(() => store.requirements.filter(item => item.status === 'POOL' || item.status === 'EXTRACT'))
 const canPromptIteration = computed(() => selected.value?.status === 'LOCKED' && can.manageRequirements(auth.roles))
+const canPublishIteration = computed(() => can.manageRequirements(auth.roles) || can.release(auth.roles))
 const promptDisabledReason = computed(() => {
   if (!selected.value) return ''
-  if (selected.value.status !== 'LOCKED') return '锁定范围后可生成提示词'
+  if (selected.value.status === 'PLANNING') return '锁定范围后可生成提示词'
+  if (selected.value.status !== 'LOCKED') return '当前迭代状态不可生成提示词'
   return can.manageRequirements(auth.roles) ? '' : '仅产品经理或管理员可生成提示词'
 })
 
@@ -62,14 +65,26 @@ async function lockIteration() {
   finally { busy.value = false }
 }
 
-function openIterationPrompt() {
+async function releaseIteration() {
   if (!selected.value) return
-  if (selected.value.status !== 'LOCKED') { notify('锁定范围后可生成提示词', 'error'); return }
-  promptSource.value = `迭代：${selected.value.name}`
-  promptText.value = buildIterationPrompt({
-    id: selected.value.id,
-    name: selected.value.name,
-  })
+  busy.value = true
+  try {
+    await endpoints.releaseIteration(selected.value.id)
+    notify(`迭代「${selected.value.name}」已发布`)
+    await Promise.all([store.loadIterations(), store.loadRequirements(), store.loadSummary()])
+  } catch (reason) { notify(readableError(reason), 'error') }
+  finally { busy.value = false }
+}
+
+function openIterationPrompt(kind: 'refinement' | 'taskBreakdown') {
+  if (!selected.value) return
+  if (selected.value.status !== 'LOCKED') { notify(promptDisabledReason.value || '当前迭代状态不可生成提示词', 'error'); return }
+  const target = { id: selected.value.id, name: selected.value.name }
+  promptTitle.value = kind === 'refinement' ? '需求分析提示词预览' : '研发任务拆分提示词预览'
+  promptSource.value = `迭代：${selected.value.name} · ${kind === 'refinement' ? '需求分析' : '研发任务拆分'}`
+  promptText.value = kind === 'refinement'
+    ? buildRefinementPrompt(target)
+    : buildTaskBreakdownPrompt(target)
   promptVisible.value = true
 }
 
@@ -106,7 +121,7 @@ async function assign(requirementId: number) {
     <span class="sub">选择迭代：</span>
     <div class="seg">
       <button v-for="iteration in store.iterations" :key="iteration.id" :class="{ on: selected?.id === iteration.id }" @click="selectedId = iteration.id">
-        {{ iteration.name }}{{ iteration.status === 'LOCKED' ? ' · 已锁定' : '' }}
+        {{ iteration.name }} · {{ iterationStatusLabel(iteration.status) }}
       </button>
     </div>
   </div>
@@ -114,15 +129,29 @@ async function assign(requirementId: number) {
   <div v-else class="split-wide">
     <div class="panel">
       <div class="panel-h">
-        <h3>{{ selected?.name }} <span :class="['chip', selected?.status === 'LOCKED' ? 'st-done' : 'chip-soft']" style="margin-left:8px">{{ selected?.status === 'LOCKED' ? '已锁定' : '规划中' }}</span></h3>
-        <div style="display:flex;gap:8px;align-items:center">
+        <h3>{{ selected?.name }} <span :class="['chip', iterationStatusClass(selected?.status ?? '')]" style="margin-left:8px">{{ iterationStatusLabel(selected?.status ?? '') }}</span></h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
           <button
             v-if="selected"
             class="btn btn-ghost btn-sm"
             :disabled="!canPromptIteration"
             :title="promptDisabledReason"
-            @click="openIterationPrompt"
-          >生成提示词</button>
+            @click="openIterationPrompt('refinement')"
+          >生成需求分析提示词</button>
+          <button
+            v-if="selected"
+            class="btn btn-ghost btn-sm"
+            :disabled="!canPromptIteration"
+            :title="promptDisabledReason"
+            @click="openIterationPrompt('taskBreakdown')"
+          >生成研发任务拆分提示词</button>
+          <button
+            v-if="selected?.status === 'READY_FOR_RELEASE'"
+            class="btn btn-primary btn-sm"
+            :disabled="busy || !canPublishIteration"
+            :title="canPublishIteration ? '' : '仅管理员、产品经理或发布负责人可发布'"
+            @click="releaseIteration"
+          >发布</button>
           <button v-if="selected?.status === 'PLANNING'" class="btn btn-ghost btn-sm" :disabled="busy || !can.manageRequirements(auth.roles)" @click="lockIteration">锁定范围</button>
         </div>
       </div>
@@ -150,13 +179,15 @@ async function assign(requirementId: number) {
     <div class="panel">
       <div class="panel-h"><h3>未纳入迭代</h3><span class="sub">仅未锁定迭代可加入</span></div>
       <div class="panel-b">
-        <div v-if="selected?.status === 'LOCKED'" class="warn-box">迭代范围已锁定。新增需求请创建新迭代。</div>
+        <div v-if="selected && selected.status !== 'PLANNING'" class="warn-box">
+          {{ selected.status === 'LOCKED' ? '迭代范围已锁定。新增需求请创建新迭代。' : '迭代已进入发布阶段，不能再纳入需求。' }}
+        </div>
         <div v-if="!pool.length" class="empty">需求池暂无可纳入需求</div>
         <div v-for="item in pool" :key="item.id" class="ticket">
           <div class="tt">{{ item.title }} <span class="req-id">{{ item.requirementNumber }}</span></div>
           <div class="mf">
             <StatusChip :status="item.status" />
-            <button class="btn btn-ghost btn-sm" :disabled="selected?.status === 'LOCKED' || busy || !can.manageRequirements(auth.roles)" @click="assign(item.id)">纳入本期</button>
+            <button class="btn btn-ghost btn-sm" :disabled="selected?.status !== 'PLANNING' || busy || !can.manageRequirements(auth.roles)" @click="assign(item.id)">纳入本期</button>
           </div>
         </div>
       </div>
@@ -190,7 +221,7 @@ async function assign(requirementId: number) {
 
   <PromptPreviewModal
     v-model:visible="promptVisible"
-    title="迭代提示词预览"
+    :title="promptTitle"
     :source="promptSource"
     :prompt="promptText"
   />

@@ -115,6 +115,22 @@ test('需求从录入到发布完成的全流程在浏览器中可用', async ({
   await page.getByRole('button', { name: /批量完成任务/ }).click()
   await expect(page.locator('.toast')).toContainText('已完成 1 个任务')
 
+  // 迭代自动待发布；发布需产品经理或发布负责人操作
+  await page.getByTestId('nav-iterations').click()
+  await page.locator('.filters .seg button').filter({ hasText: iterationName }).click()
+  await expect(page.locator('.panel-h .chip').filter({ hasText: '待发布' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '发布', exact: true })).toBeDisabled()
+
+  await logout(page)
+  await login(page, 'pm')
+  await page.getByTestId('nav-iterations').click()
+  await page.locator('.filters .seg button').filter({ hasText: iterationName }).click()
+  await page.getByRole('button', { name: '发布', exact: true }).click()
+  await expect(page.locator('.toast')).toContainText('已发布')
+  await expect(page.locator('.panel-h .chip').filter({ hasText: '已发布' })).toBeVisible()
+  await page.getByTestId('nav-overview').click()
+  await expect(page.locator('.kpi').filter({ hasText: '待发布迭代' }).locator('.v')).toHaveText('0')
+
   // 审计：管理员可见完整操作记录
   await logout(page)
   await login(page, 'admin')

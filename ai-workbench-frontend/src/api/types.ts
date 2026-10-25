@@ -20,7 +20,7 @@ export type Iteration = {
   name: string
   startDate: string
   endDate: string
-  status: 'PLANNING' | 'LOCKED'
+  status: 'PLANNING' | 'LOCKED' | 'READY_FOR_RELEASE' | 'RELEASED'
 }
 
 export type WorkflowRecord = {

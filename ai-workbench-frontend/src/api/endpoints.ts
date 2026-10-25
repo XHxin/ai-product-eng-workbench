@@ -57,6 +57,7 @@ export const endpoints = {
   createIteration: (input: { name: string; startDate: string; endDate: string }) =>
     api.post<Iteration>('/iterations', input),
   lockIteration: (id: number) => api.post<Iteration>(`/iterations/${id}/lock`, {}),
+  releaseIteration: (id: number) => api.post<Iteration>(`/iterations/${id}/release`, {}),
   assignRequirement: (iterationId: number, requirementId: number) =>
     api.post<Requirement>(`/iterations/${iterationId}/requirements`, { requirementId }),
   removeRequirement: (iterationId: number, requirementId: number) =>

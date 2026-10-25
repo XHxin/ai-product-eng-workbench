@@ -64,5 +64,8 @@ public class RequirementController {
                                            @NotBlank @Size(max = 20000) String rawText,
                                            @NotBlank @Size(max = 40) String sourceType,
                                            @NotBlank @Size(max = 1000) String sourceRef,
-                                           @NotBlank @Size(max = 200) String idempotencyKey) { }
+                                           @NotBlank @Size(max = 200) String idempotencyKey,
+                                           @Size(max = 20000) String normalizedText,
+                                           Commands.RequirementType requirementType,
+                                           Commands.Priority priority) { }
 }

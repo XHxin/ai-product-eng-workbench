@@ -61,6 +61,19 @@ public class RequirementService {
         requirement.sourceType = request.sourceType();
         requirement.sourceRef = request.sourceRef();
         requirement.idempotencyKey = request.idempotencyKey();
+        applyStructuredFields(requirement, request);
         return requirement;
+    }
+
+    private void applyStructuredFields(RequirementEntity requirement, CreateRequirementRequest request) {
+        if (request.normalizedText() != null) {
+            requirement.normalizedText = request.normalizedText();
+        }
+        if (request.requirementType() != null) {
+            requirement.requirementType = request.requirementType().name();
+        }
+        if (request.priority() != null) {
+            requirement.priority = request.priority().name();
+        }
     }
 }

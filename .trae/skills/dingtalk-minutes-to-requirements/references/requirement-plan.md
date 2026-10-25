@@ -39,6 +39,6 @@ The plan is a JSON object so minutes metadata can travel with the extracted item
 - `sourceType` is always `TINGJI`.
 - `sourceRef` is `minutesShareUrl` when present, otherwise `tingji:<minutesUuid>`.
 - The idempotency key is `tingji-<minutesUuid>-<sha1(title + normalizedText)[:16]>`.
-- By default the publisher creates the requirement and immediately confirms it into the pool with the plan's type, priority, and rationale.
-- With `--no-auto-confirm`, the requirement stays in `EXTRACT` (待提取) for product-manager review.
+- The publisher creates the requirement in `EXTRACT` (待提取) and preserves the plan's normalized text, type, and priority for product-manager confirmation.
+- Use `--auto-confirm` only when the user explicitly asks to push items directly into the pool (`POOL`).
 - A plan item with no clear actionable outcome must be omitted, not published with placeholder content.

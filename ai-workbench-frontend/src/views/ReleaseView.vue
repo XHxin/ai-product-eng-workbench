@@ -17,7 +17,7 @@ const showManual = ref(false)
 const reminderForm = ref({ iterationId: 0, version: '', notes: '' })
 const confirmForm = ref({ record: null as ReleaseRecord | null, notes: '' })
 const manualForm = ref({ record: null as ReleaseRecord | null, writebackStatus: 'DONE', notifyStatus: 'DONE', evidence: '' })
-const lockedIterations = computed(() => store.iterations.filter(item => item.status === 'LOCKED'))
+const lockedIterations = computed(() => store.iterations.filter(item => ['LOCKED', 'READY_FOR_RELEASE'].includes(item.status)))
 
 onMounted(async () => {
   await Promise.all([store.loadReleases(), store.loadIterations()])

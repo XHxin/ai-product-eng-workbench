@@ -87,6 +87,20 @@ class RequirementMaintenanceTest {
                 org.hamcrest.Matchers.hasItem("REQUIREMENT_DELETED")));
     }
 
+    @Test
+    void createsStructuredRequirementStayingInExtractForReview() throws Exception {
+        client.perform(post("/api/requirements")
+                .with(user("pm").roles("PM")).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"AI提取需求\",\"rawText\":\"原始聊天内容\",\"sourceType\":\"DINGTALK\","
+                    + "\"sourceRef\":\"dingtalk:test\",\"idempotencyKey\":\"structured-extract-1\","
+                    + "\"normalizedText\":\"背景：测试\\n问题：待确认\",\"requirementType\":\"IMPROVEMENT\",\"priority\":\"P1\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.status").value("EXTRACT"))
+            .andExpect(jsonPath("$.normalizedText").value("背景：测试\n问题：待确认"))
+            .andExpect(jsonPath("$.requirementType").value("IMPROVEMENT"))
+            .andExpect(jsonPath("$.priority").value("P1"));
+    }
+
     private void assign(long iterationId, long requirementId) throws Exception {
         client.perform(post("/api/iterations/{id}/requirements", iterationId)
                 .with(user("pm").roles("PM")).with(csrf()).contentType(MediaType.APPLICATION_JSON)

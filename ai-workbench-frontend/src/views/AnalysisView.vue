@@ -218,7 +218,7 @@ async function submitReview() {
       </button>
     </div>
   </div>
-  <div v-if="selectedIteration && selectedIteration.status !== 'LOCKED'" class="warn-box">该迭代尚未锁定范围，生成正式 PRD 会失败。请先在迭代规划中锁定范围。</div>
+  <div v-if="selectedIteration && selectedIteration.status === 'PLANNING'" class="warn-box">该迭代尚未锁定范围，生成正式 PRD 会失败。请先在迭代规划中锁定范围。</div>
   <div v-if="selectedRequirement" class="panel" style="margin-bottom:16px">
     <div class="panel-h">
       <h3>状态流转</h3>

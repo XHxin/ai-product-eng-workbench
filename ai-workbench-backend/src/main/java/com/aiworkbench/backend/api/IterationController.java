@@ -58,6 +58,12 @@ public class IterationController {
         return Views.Iteration.from(iterationService.lock(id, principal.getName()));
     }
 
+    @PostMapping("/{id}/release")
+    @PreAuthorize("hasAnyRole('ADMIN','PM','RELEASE_MANAGER')")
+    public Views.Iteration release(@PathVariable Long id, Principal principal) {
+        return Views.Iteration.from(iterationService.release(id, principal.getName()));
+    }
+
     @PostMapping("/{id}/requirements")
     @PreAuthorize("hasAnyRole('ADMIN','PM')")
     public Views.Requirement assign(@PathVariable Long id, @Valid @RequestBody AssignmentRequest request,

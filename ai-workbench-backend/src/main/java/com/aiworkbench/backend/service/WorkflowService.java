@@ -198,7 +198,33 @@ public class WorkflowService {
         task.status = command.status().name();
         records.save(task);
         audit("TASK_PROGRESS_UPDATED", actor, task.requirementId, "taskId=" + taskId + ",status=" + task.status);
+        if ("DONE".equals(task.status)) {
+            markIterationReadyForRelease(task.iterationId, actor);
+        }
         return task;
+    }
+
+    private void markIterationReadyForRelease(Long iterationId, String actor) {
+        if (iterationId == null) {
+            return;
+        }
+        IterationEntity iteration = iterations.findById(iterationId).orElse(null);
+        if (iteration == null || !"LOCKED".equals(iteration.status)) {
+            return;
+        }
+        List<RequirementEntity> iterationRequirements = requirements.findByIterationId(iterationId);
+        if (iterationRequirements.isEmpty() || !iterationRequirements.stream().allMatch(this::allTasksDone)) {
+            return;
+        }
+        iteration.status = "READY_FOR_RELEASE";
+        iterations.save(iteration);
+        auditLogService.record(new AuditLogService.AuditEntry("ITERATION_READY_FOR_RELEASE", actor, "ITERATION",
+            "iterationId=" + iterationId));
+    }
+
+    private boolean allTasksDone(RequirementEntity requirement) {
+        List<WorkflowRecord> tasks = records.findByRequirementIdAndCategoryOrderByIdDesc(requirement.id, CATEGORY_TASK);
+        return !tasks.isEmpty() && tasks.stream().allMatch(task -> "DONE".equals(task.status));
     }
 
     public RequirementEntity require(Long id) {

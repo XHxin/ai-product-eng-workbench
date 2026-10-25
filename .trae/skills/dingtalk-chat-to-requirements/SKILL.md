@@ -1,6 +1,6 @@
 ---
 name: dingtalk-chat-to-requirements
-description: Read DingTalk group or direct messages, extract requirements, and publish them to the AI Workbench pool via API. Use for 聊天记录转需求 or 群聊/单聊录入需求池. Not for unrelated sends.
+description: Read DingTalk group or direct messages, extract requirements, and create them in the AI Workbench 待提取 list (需求录入页面) via API. Use for 聊天记录转需求 or 群聊/单聊录入需求池. Not for unrelated sends.
 ---
 
 # DingTalk Chat to Requirements
@@ -98,7 +98,7 @@ Show the requirement count, titles, types, priorities, and target base URL. Unle
 python scripts/publish_requirements.py --plan plan.json
 ```
 
-The script logs in with CSRF protection, creates each requirement, and by default confirms it into the pool. Use `--no-auto-confirm` to keep items in 待提取 for product-manager review.
+The script logs in with CSRF protection and creates each requirement in 待提取 (`EXTRACT`) with the AI-extracted text, type, and priority preserved for product-manager confirmation. Use `--auto-confirm` only when the user explicitly asks to push items directly into the pool.
 
 Idempotency keys use the target ID, the cited message IDs, and the requirement content. Re-running the same plan reuses existing requirements instead of duplicating them.
 

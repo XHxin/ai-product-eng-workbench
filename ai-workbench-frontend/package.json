@@ -1,0 +1,29 @@
+{
+  "name": "ai-workbench-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "latest",
+    "dompurify": "^3.4.17",
+    "marked": "^18.1.1",
+    "pinia": "latest",
+    "vite": "latest",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "jsdom": "latest",
+    "typescript": "^5.9.3",
+    "vitest": "latest",
+    "vue-tsc": "latest"
+  }
+}

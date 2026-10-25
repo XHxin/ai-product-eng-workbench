@@ -1,0 +1,20 @@
+# 依赖与构建产物
+node_modules/
+target/
+dist/
+test-results/
+playwright-report/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 日志与本地 IDE 配置
+*.log
+.idea/
+*.iml
+.DS_Store
+
+# Trae 本地运行状态与内部产出物（仅推送技能定义）
+.trae/*
+!.trae/skills/
